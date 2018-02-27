@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import vrep
+import vrep_api.vrep as vrep
 import traceback
 from walker import Walker
 from cpg import CpgController
@@ -106,7 +106,7 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             print('Running...')
             for _ in range(steps):
                 output = cpg.output()
-                if objective_mode is 'moo':
+                if objective_mode is not 'normal':
                     walker.update_energy()
                 for i in range(6):
                     walker.legs[i].extendZ(output[i][0])
@@ -116,8 +116,11 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
 
             errorCode, end = vrep.simxGetObjectPosition(CLIENTID, \
                 walker.base_handle, -1, vrep.simx_opmode_blocking)
-            total_energy = walker.calculate_energy() / 5
-            print('Total power: ' + str(total_energy) + 'W')
+
+
+            if parameter_mode is not 'normal':
+                total_energy = walker.calculate_energy() / 5
+                print('Total power: ' + str(total_energy) + 'W')
 
             vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_blocking)
             vrep.simxGetPingTime(CLIENTID)

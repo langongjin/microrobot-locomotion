@@ -1,4 +1,4 @@
-import vrep
+import vrep_api.vrep as vrep
 
 CLIENTID = 0
 VALID_ERROR_CODES = (0 , 1)

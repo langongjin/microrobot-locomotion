@@ -8,7 +8,7 @@ from DIRECT import solve
 import scipy
 from scipy.optimize import minimize
 
-import vrep
+import vrep_api.vrep as vrep
 import traceback
 from walker import Walker
 from cpg import CpgController

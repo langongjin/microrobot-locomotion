@@ -15,9 +15,10 @@ import matplotlib.pyplot as plt
 from dotmap import DotMap
 
 init_vrep()
-obj_f = generate_f(parameter_mode='normal', objective_mode='moo', steps=400)
-task = OptTask(f=obj_f, n_parameters=4, n_objectives=2, \
-    bounds=bounds(min=[1, -np.pi, 0, 0], max=[60, np.pi, 1, 1]), \
+obj_f = generate_f(parameter_mode='discovery', objective_mode='moo', steps=400)
+task = OptTask(f=obj_f, n_parameters=8, n_objectives=2, name='MOO', \
+    bounds=bounds(min=[1e-10,0,0,0,0,0,0,0], max=[60, 2 * np.pi, \
+    2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi, 2 * np.pi]), \
     vectorized=False)
 stopCriteria = StopCriteria(maxEvals=90)
 
