@@ -1,10 +1,12 @@
 # Learning Flexible and Reusable Locomotion Primitives for a Microrobot
 
+![walker](https://i.imgur.com/qJBrkAi.png)
+
 This is the repository for the paper "Learning Flexible and Reusable Locomotion Primitives for a Microrobot". More information can be found on our website [here](https://sites.google.com/view/learning-locomotion-primitives/).
 Included are demos for running the experiments laid out in the paper.
 
 ## Installation
-TODO: test Python 2/3
+Tested and maintained for Python 2.
 ### External Dependencies
 Before installing the repo, there are two dependencies that need to be set up manually.
 * [V-REP](http://www.coppeliarobotics.com/downloads.html), an open-source robotics simulator used to run the experiments (the limited version works if you can't access the educational pro version).
@@ -20,36 +22,31 @@ pip install -r requirements.txt
 
 ## Running Demos
 ### Simulator Setup
-TODO: automatic scene loading?
-Before running any of the experiments, we need to make sure V-REP is running (see the V-REP documentation for troubleshooting issues with installation/booting). If running the inclination optimization experiments, the provided code will handle scene loading for you. Otherwise, you'll need to load the scene manually.
+Before running any of the experiments, make sure V-REP is open (see the V-REP documentation for troubleshooting issues with installation/booting). Scenes are automatically loaded and can also be found in `scenes/`. The default simulator settings should work fine, but check that the following settings are correct:
+* Physics engine: Bullet 2.78
+* Time step: 50 ms
 
-
-### Single-Objective BO
-To test the single-objective optimization for walking speed only, we run:
+### Running Demos
+To test the single-objective optimization for walking speed only, run:
 ```
 python normal.py
 ```
-
-### Multi-objective BO
-To run the multi-objective optimization taking into account walking speed and energy efficiency, we run:
+To run the multi-objective optimization taking into account walking speed and energy efficiency, run:
 ```
-python TODO
+python moo.py
 ```
-To run the multi-objective optimization for unbounded gait discovery, we run:
+To run the multi-objective optimization for unbounded gait discovery, run:
 ```
-python TODO
+python discovery.py
 ```
-
-### Contextual BO
-To run the inclination optimization, we run:
+To run the inclination optimization, run:
 ```
-python TODO
+python incline.py
 ```
-To run the turning optimization, we run:
+To run the turning optimization, run:
 ```
-python TODO
+python turning.py
 ```
-
 ## Citation
 ```
 Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learning Flexible and Reusable Locomotion Primitives for a Microrobot IEEE Robotics and Automation Letters (RA-L), 2018
