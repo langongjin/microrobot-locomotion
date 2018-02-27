@@ -4,193 +4,53 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import GPy
-from DIRECT import solve
 import scipy
+from DIRECT import solve
 from scipy.optimize import minimize
-
-import vrep_api.vrep as vrep
-import traceback
-from walker import Walker
-from cpg import CpgController
-from cpg_gaits import *
 
 from objective_functions import *
 
-class InclineOptimizer:
-    def __init__(self, obj_f, n_inputs, lower_bounds, upper_bounds, \
+class TurningOptimizer:
+    def __init__(self, obj_f, n_parameters, lower_bounds, upper_bounds, \
         context_space):
         '''
-        Implementation of Bayesian optimization for contextual policy search
+        Contextual BO for turning to target trajectories
 
-        obj_f:          The objective function
-        n_inputs:       The number of inputs
-        lower_bounds:   The lower bounds for the parameters (ordered)
-        upper_bounds:   The upper bounds for the parameters (ordered)
-        context_space:  Sequence of contexts to sample from during optimization
+        obj_f:          Objective function
+        n_inputs:       Number of inputs
+        lower_bounds:   Sequence of lower bounds for the parameters (ordered)
+        upper_bounds:   Sequence of upper bounds for the parameters (ordered)
+        context_space:  Sequence of targets to sample from
         '''
         self.obj_f = obj_f
-        self.n_inputs = n_inputs
-        self.n_contexts = 1
-        self.context_index = 0
+        self.n_parameters = n_parameters
+        self.n_contexts = 2
+
         self.lower_bounds = lower_bounds
         self.upper_bounds = upper_bounds
         self.context_space = context_space
 
+        # Initialize first 10 random guesses
         self.parameters = np.concatenate([np.random.uniform(lower_bounds[i],
-        upper_bounds[i], (10, 1)) for i in range(n_inputs)], axis=1)
-        self.contexts = np.random.choice(context_space, (10, 1))
+        upper_bounds[i], (10, 1)) for i in range(n_parameters)], axis=1)
+        self.contexts = np.stack([context_space[i % len(context_space)] \
+            for i in range(10)])
         self.X = np.concatenate((self.parameters, self.contexts), axis=1)
-        self.Y = np.array([self.obj_f(self.X[i]) for i in range(10)])
 
+        objs = []
+        infos = []
+        for i in range(10):
+            obj, info = self.obj_f(self.X[i])
+            objs.append(obj)
+            infos.append(info)
+
+        self.Y = np.array(objs)
+        self.info = np.array(infos)
+
+        # Fit dataset to GP model
         self.train_GP(self.X, self.Y)
         self.model.optimize()
         self.iterations = 0
-
-    def train_GP(self, X, Y, kernel=None):
-        '''
-        Trains the GP model. The Matern 5/2 kernel is used by default
-
-        X:      A 2-D input vector containing both parameters and context
-        Y:      A 2-D output vector containing objective values
-        kernel: See the GPy documentation for other kernel options
-        '''
-        if not kernel:
-            kernel = GPy.kern.Matern52(input_dim=self.n_inputs + 1, ARD=True)
-        self.model = GPy.models.GPRegression(X, Y, kernel)
-
-    def plot(self, visible_dims=None):
-        '''
-        Wrapper function for GPy's GP plotting function.
-        To specify the arguments further, call the function manually with:
-        >> self.model.plot(...)
-
-        visible_dims:   Sequence of parameter indices to be plotted (max 2)
-                        Uses the first two parameters by default
-        '''
-        iters = range(1, self.iterations + 11)
-        objectives = self.Y
-        plt.plot(iters, objectives)
-        plt.xlabel('Iterations')
-        plt.ylabel('Objective value')
-        plt.show()
-
-    def optimize(self, n_iterations):
-        for _ in range(n_iterations):
-            try:
-                self.iterations += 1
-                print('Iteration ' + str(self.iterations))
-
-                context = [self.context_space[self.context_index]]
-                self.context_index = (self.context_index + 1) % \
-                    len(self.context_space)
-
-                # DIRECT
-                def DIRECT_obj(x, user_data):
-                    return -self.acq_f(np.concatenate((x, context))), 0
-                x, fmin, ierror = solve(DIRECT_obj, self.lower_bounds, \
-                    self.upper_bounds, maxf=500)
-
-                # L-BFGS-B
-                def LBFGS_obj(x):
-                    return -self.acq_f(np.concatenate((x, context)))
-                bounds = [(self.lower_bounds[i], self.upper_bounds[i]) \
-                    for i in range(self.n_inputs)]
-                res = minimize(LBFGS_obj, x, method='L-BFGS-B', bounds=bounds)
-
-                self.parameters = np.concatenate((self.parameters, \
-                    np.reshape(res.x, (1,self.n_inputs))))
-                self.contexts = np.concatenate((self.contexts, \
-                    np.reshape(context, (1,1))))
-                self.X = np.concatenate((self.parameters,self.contexts), axis=1)
-                self.Y = np.concatenate((self.Y, \
-                    [self.obj_f(np.concatenate((res.x, context)))]))
-
-                self.train_GP(self.X, self.Y)
-                self.model.optimize()
-            except Exception:
-                print('Exception encountered during optimization')
-                traceback.print_exc()
-
-    def acq_f(self, x, alpha=-1, v=.01, delta=.1):
-        x = np.reshape(x, (1, self.n_inputs + self.n_contexts))
-        mean, var = self.model.predict(x)
-        if alpha is -1:
-            alpha = np.sqrt(v*(2*np.log((self.iterations**(((self.n_inputs) \
-                / 2) + 2)) * (np.pi**2) / (3 * delta))))
-        return mean + (alpha * var)
-
-    def predict_optimal(self, context):
-        context = np.array([context])
-        def DIRECT_obj(x, user_data):
-            return -self.acq_f(np.concatenate((x, context)), alpha=0), 0
-        x,fmin,ierror= solve(DIRECT_obj, self.lower_bounds, self.upper_bounds)
-
-        def LBFGS_obj(x):
-            return -self.acq_f(np.concatenate((x, context)), alpha=0)
-        bounds = [(self.lower_bounds[i], self.upper_bounds[i]) \
-            for i in range(self.n_inputs)]
-        res = minimize(LBFGS_obj, x, method='L-BFGS-B', bounds=bounds)
-        return res.x
-
-class TurningOptimizer:
-    def __init__(self, obj_f=None, n_parameters=None, lower_bounds=None, \
-        upper_bounds=None, context_space=None, load=None):
-        '''
-        Implementation of Bayesian optimization for contextual policy search
-
-        obj_f:          The cost function to be maximized, takes the parameter
-                        vector as an input and returns an array of objectives
-        n_inputs:       The number of inputs
-        lower_bounds:   The lower bounds for the parameters (ordered)
-        upper_bounds:   The upper bounds for the parameters (ordered)
-        context_space:  Sequence of valid contexts
-                        (TODO) Allow for sampling from continuous context spaces
-        '''
-        if not load:
-            self.obj_f = obj_f
-            self.n_parameters = n_parameters
-            self.n_contexts = 2
-
-            self.lower_bounds = lower_bounds
-            self.upper_bounds = upper_bounds
-            self.context_space = context_space
-
-            # Initialize first 10 random guesses
-            self.parameters = np.concatenate([np.random.uniform(lower_bounds[i],
-            upper_bounds[i], (10, 1)) for i in range(n_parameters)], axis=1)
-            self.contexts = np.stack([context_space[i % len(context_space)] \
-                for i in range(10)])
-            self.X = np.concatenate((self.parameters, self.contexts), axis=1)
-
-            objs = []
-            infos = []
-            for i in range(10):
-                obj, info = self.obj_f(self.X[i])
-                objs.append(obj)
-                infos.append(info)
-
-            self.Y = np.array(objs)
-            self.info = np.array(infos)
-
-            # Fit dataset to GP model
-            self.train_GP(self.X, self.Y)
-            self.model.optimize()
-            self.iterations = 0
-        else:
-            self.obj_f = obj_f
-            self.lower_bounds = [0,0,0,0]
-            self.upper_bounds = [10,10,10,10]
-            self.n_parameters = 4
-            self.n_contexts = 2
-            self.iterations = 260
-            self.context_space = [(4 * np.cos(np.pi/16),4*np.sin(np.pi/16))]
-            self.X, self.Y = np.reshape(load[:,:6], (260, 6)), \
-                np.reshape(load[:,6], (260, 1))
-            self.parameters = self.X[:,:4]
-            self.contexts = self.X[:,4:]
-            self.info = []
-            self.train_GP(self.X, self.Y)
-            self.model.optimize()
 
     def train_GP(self, X, Y, kernel=None):
         '''
@@ -308,11 +168,11 @@ class TurningOptimizer:
         return obj_f(np.concatenate([res.x, context]))[0]
 
 init_vrep()
-# co = ContextualOptimizer(incline_obj_f, 3, [1e-10, 0, 0], [60, 2 * np.pi, 1], [5,10,15])
-co = TurningOptimizer(turning_obj_f, 4, [0, 0, 0, 0], [10,10,10,10], [(4,0), \
+load_scene('scenes/normal.ttt')
+to = TurningOptimizer(turning_obj_f, 4, [0, 0, 0, 0], [10,10,10,10], [(4,0), \
     (4 * np.cos(np.pi / 8), 4 * np.sin(np.pi / 8)),(4 * np.cos(-np.pi / 8),\
     4 * np.sin(-np.pi / 8)),(4 * np.cos(np.pi / 4), 4 * np.sin(np.pi / 4)),\
     (4 * np.cos(-np.pi / 4), 4 * np.sin(-np.pi / 4))])
-co.optimize(50)
-
+to.optimize(250)
+to.plot()
 exit_vrep()

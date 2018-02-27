@@ -15,17 +15,18 @@ import matplotlib.pyplot as plt
 from dotmap import DotMap
 
 init_vrep()
-obj_f = generate_f(parameter_mode='normal', objective_mode='moo', steps=400)
+load_scene('scenes/normal.ttt')
+obj_f = generate_f(parameter_mode='normal', objective_mode='moo', steps=2)
 task = OptTask(f=obj_f, n_parameters=4, n_objectives=2, \
     bounds=bounds(min=[1, -np.pi, 0, 0], max=[60, np.pi, 1, 1]), \
     vectorized=False)
-stopCriteria = StopCriteria(maxEvals=90)
+stopCriteria = StopCriteria(maxEvals=50)
 
 p = DotMap()
 p.verbosity = 1
 p.acq_func = EI(model=None, logs=None)
 p.optimizer = opto.CMAES
-p.model = rregression.GP
+p.model = regression.GP
 opt = opto.PAREGO(parameters=p, task=task, stopCriteria=stopCriteria)
 opt.optimize()
 logs = opt.get_logs()

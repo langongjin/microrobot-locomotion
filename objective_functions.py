@@ -18,14 +18,19 @@ def init_vrep():
     client_id = vrep.simxStart('127.0.0.1',19997,True,True,5000,5)
     assert client_id != -1, 'Failed to connect to remote API server'
     vrep.simxSynchronous(client_id, 1)
-    walker = Walker()
     ENV_VAR['client_id'] = client_id
-    ENV_VAR['walker'] = walker
     print('Initialized simulation environment')
 
 def exit_vrep():
     vrep.simxFinish(ENV_VAR['client_id'])
     print('Exited simulation environment')
+
+def load_scene(path):
+    assert vrep.simxLoadScene(ENV_VAR['client_id'], path, 1, vrep.simx_opmode_blocking) in \
+        VALID_ERROR_CODES, 'Error loading scene'
+    print('Loading scene: ' + path)
+    walker = Walker()
+    ENV_VAR['walker'] = walker
 
 def wait(steps):
     CLIENTID = ENV_VAR['client_id']
@@ -69,7 +74,7 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             assert errorCode in VALID_ERROR_CODES, 'Walker not found'
 
             x = np.asarray(x)[0]
-            print('Parameters: ', str(x))
+            print('\nParameters: ' + str(x))
             cpg_gait = gait
             if parameter_mode is 'normal':
                 cpg_gait.f = x[0]
@@ -98,12 +103,11 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             cpg_gait.coupling_phase_biases = \
                 cpg_gait.generate_coupling(cpg_gait.phase_groupings)
 
-            print('Initializing CPG...')
             cpg = CpgController(cpg_gait)
             for _ in range(1000):
                 cpg.update(plot=False)
 
-            print('Running...')
+            print('Running trial...')
             for _ in range(steps):
                 output = cpg.output()
                 if objective_mode is not 'normal':
@@ -118,9 +122,8 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
                 walker.base_handle, -1, vrep.simx_opmode_blocking)
 
 
-            if parameter_mode is not 'normal':
+            if objective_mode is not 'single':
                 total_energy = walker.calculate_energy() / 5
-                print('Total power: ' + str(total_energy) + 'W')
 
             vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_blocking)
             vrep.simxGetPingTime(CLIENTID)
@@ -135,9 +138,11 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
                 distance = start[0] - end[0]
                 if penalize_offset: distance += (.1 * np.abs(end[1] - start[1]))
                 if objective_mode is 'single':
+                    print('Distance traveled: ' + str(distance))
                     return np.array([distance])
                 else:
-                    print('Objective: ', distance, total_energy)
+                    print('Distance traveled: ' + str(distance))
+                    print('Total power: ' + str(total_energy) + 'W')
                     return np.array([distance, total_energy])
         except Exception as e:
             print('Encountered an exception, disconnecting from remote API server')
@@ -152,17 +157,11 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
 Contextual objectives
 '''
 def incline_obj_f(x):
-    print('Evaluating objective function at: ' + str(x))
+    print('\nParameters: ' + str(x))
     try:
         CLIENTID = ENV_VAR['client_id']
-        walker = Walker()
-        context = x[3]
-        print('Loading scenes/inclines/' + str(int(context)) + 'deg.ttt')
-        assert vrep.simxLoadScene(CLIENTID, 'scenes/inclines/' + \
-            str(int(context)) + 'deg.ttt', 1, vrep.simx_opmode_blocking) in \
-            VALID_ERROR_CODES, 'Error loading scene'
-
-        walker.reset()
+        load_scene('scenes/inclines/' + str(int(x[3])) + 'deg.ttt')
+        walker = ENV_VAR['walker']
 
         vrep.simxSynchronous(CLIENTID, 1)
         vrep.simxStartSimulation(CLIENTID, vrep.simx_opmode_blocking)
@@ -181,7 +180,7 @@ def incline_obj_f(x):
         for _ in range(1000):
             cpg.update(plot=False)
 
-        print('Running...')
+        print('Running trial...')
         for _ in range(100):
             output = cpg.output()
             for i in range(6):
@@ -210,7 +209,7 @@ def incline_obj_f(x):
         exit()
 
 def turning_obj_f(x):
-    print('Evaluating objective function at: ' + str(x))
+    print('\nParameters: ' + str(x))
     try:
         CLIENTID = ENV_VAR['client_id']
         walker = ENV_VAR['walker']
@@ -229,7 +228,6 @@ def turning_obj_f(x):
         q1 = vrep.simxGetObjectGroupData(CLIENTID, baseCollectionHandle, \
             7, vrep.simx_opmode_blocking)
         o1 = quatToDirection(q1[3]) + np.pi
-        print('Initial direction: ' + str(o1))
 
         x[2] = 15 + (3 * x[2])
         x[3] = x[3] * 2 * np.pi / 10
@@ -246,7 +244,7 @@ def turning_obj_f(x):
         for _ in range(1000):
             cpg.update(plot=False)
 
-        print('Running...')
+        print('Running trial...')
         for _ in range(100):
             output = cpg.output()
             walker.update_energy()
@@ -257,14 +255,12 @@ def turning_obj_f(x):
             cpg.update()
 
         total_energy = walker.calculate_energy() / 5
-        print('Total power: ' + str(total_energy) + 'W')
 
         errorCode, end = vrep.simxGetObjectPosition(CLIENTID, \
             walker.base_handle, -1, vrep.simx_opmode_blocking)
         q2 = vrep.simxGetObjectGroupData(CLIENTID, baseCollectionHandle, \
             7, vrep.simx_opmode_blocking)
         o2 = quatToDirection(q2[3]) + np.pi
-        print('End direction: ' + str(o2))
 
         vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_blocking)
         vrep.simxGetPingTime(CLIENTID)
@@ -273,17 +269,16 @@ def turning_obj_f(x):
         vrep.simxClearFloatSignal(CLIENTID, '', vrep.simx_opmode_blocking)
         displacement = np.array(end) - np.array(start)
         orientation = o2 - o1
-        print('Orientation change: ' + str(orientation))
+
         info = np.array([total_energy, displacement[0], displacement[1], \
             orientation])
 
-        def MSE(a, b):
-            x_err = a[0] - b[0]
-            y_err = a[1] - b[1]
-            return np.sqrt((x_err**2) + (y_err**2))
+        objective = distance(displacement, (x[4], x[5]))
 
-        print(MSE(displacement, (x[4], x[5])))
-        return np.array([MSE(displacement, (x[4], x[5]))]), info
+        print('Orientation change: ' + str(orientation))
+        print('Total power: ' + str(total_energy) + 'W')
+        print('Target offset: ' + str(objective))
+        return np.array([objective]), info
 
     except Exception:
         print('Encountered an exception, disconnecting from remote API server')
