@@ -1,6 +1,6 @@
 # Learning Flexible and Reusable Locomotion Primitives for a Microrobot
 
-![walker](https://i.imgur.com/qJBrkAi.png)
+![walker](https://i.imgur.com/y2RIPxh.jpg)
 
 This is the repository for the paper "Learning Flexible and Reusable Locomotion Primitives for a Microrobot". More information can be found on our website [here](https://sites.google.com/view/learning-locomotion-primitives/).
 Included are demos for running the experiments laid out in the paper.
