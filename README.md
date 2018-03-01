@@ -1,7 +1,4 @@
 # Learning Flexible and Reusable Locomotion Primitives for a Microrobot
-
-![walker](https://i.imgur.com/y2RIPxh.jpg)
-
 This is the repository for the paper "Learning Flexible and Reusable Locomotion Primitives for a Microrobot". More information can be found on our website [here](https://sites.google.com/view/learning-locomotion-primitives/).
 Included are demos for running the experiments laid out in the paper.
 
@@ -20,13 +17,12 @@ cd microrobot-locomotion
 pip install -r requirements.txt
 ```
 
-## Running Demos
-### Simulator Setup
-Before running any of the experiments, make sure V-REP is open (see the V-REP documentation for troubleshooting issues with installation/booting). Scenes are automatically loaded and can also be found in `scenes/`. The default simulator settings should work fine, but check that the following settings are correct:
+## Simulator Setup
+Before running any of the experiments, make sure V-REP is open (see the V-REP documentation for troubleshooting issues with installation/booting). Scenes are automatically loaded and can be found in `scenes/`. The default simulator settings should work fine, but check that the following settings are correct:
 * Physics engine: Bullet 2.78
 * Time step: 50 ms
 
-### Running Demos
+## Running Experiments
 To test the single-objective optimization for walking speed only, run:
 ```
 python normal.py
@@ -51,3 +47,10 @@ python turning.py
 ```
 Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learning Flexible and Reusable Locomotion Primitives for a Microrobot IEEE Robotics and Automation Letters (RA-L), 2018
 ```
+@Article{Yang2018,
+  Title                    = {Learning Flexible and Reusable Locomotion Primitives for a Microrobot},
+  Author                   = {Brian Yang and Grant Wang and Roberto Calandra and Daniel Contreras and Sergey Levine and Kristofer Pister},
+  Journal                  = {IEEE Robotics and Automation Letters (RA-L)},
+  Year                     = {2018},
+  Doi                      = {10.1109/LRA.2018.2806083},
+}
