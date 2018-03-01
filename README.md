@@ -44,7 +44,7 @@ To run the turning optimization, run:
 python turning.py
 ```
 ## Citation
-```
+
 Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learning Flexible and Reusable Locomotion Primitives for a Microrobot IEEE Robotics and Automation Letters (RA-L), 2018
 ```
 @Article{Yang2018,
@@ -54,3 +54,4 @@ Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learnin
   Year                     = {2018},
   Doi                      = {10.1109/LRA.2018.2806083},
 }
+```
