@@ -3,7 +3,7 @@ This is the repository for the paper "Learning Flexible and Reusable Locomotion 
 Included are demos for running the experiments laid out in the paper.
 
 ## Installation
-Tested and maintained for Python 2.
+Tested and maintained for Python 2.7.12/3.5.2.
 ### External Dependencies
 Before installing the repo, there are two dependencies that need to be set up manually.
 * [V-REP](http://www.coppeliarobotics.com/downloads.html), an open-source robotics simulator used to run the experiments (the limited version works if you can't access the educational pro version).
