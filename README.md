@@ -46,6 +46,7 @@ python turning.py
 ## Citation
 
 If you find this code useful, please support us by citing our paper:
+
 Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learning Flexible and Reusable Locomotion Primitives for a Microrobot IEEE Robotics and Automation Letters (RA-L), 2018
 ```
 @Article{Yang2018,
