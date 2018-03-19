@@ -12,10 +12,10 @@ ENV_VAR = {}
 
 SCENE_PATH = 'scenes/'
 SCENE_NAMES = ['normal.ttt',
-               'normal.ttt',
-               'normal.ttt',
-               'normal.ttt',
-               'normal.ttt']
+               'terrains/1.5_z.ttt',
+               'terrains/1_z.ttt',
+               'terrains/2.5_z.ttt',
+               'terrains/2_z.ttt']
 
 '''
 Helpers
@@ -34,7 +34,7 @@ def exit_vrep():
 
 def load_scene(path):
     assert vrep.simxLoadScene(ENV_VAR['client_id'], path, 1, vrep.simx_opmode_blocking) in \
-        VALID_ERROR_CODES, 'Error loading scene'
+        VALID_ERROR_CODES, 'Error loading scene {}'.format(path)
     print('Loading scene: ' + path)
     walker = Walker()
     ENV_VAR['walker'] = walker
@@ -69,7 +69,8 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
         moo (distance, energy)
         target (distance to target)
     '''
-    load_scene(SCENE_PATH+SCENE_NAMES[0])
+    load_scene('scenes/normal.ttt')
+    # load_scene('{}{}'.format(SCENE_PATH,SCENE_NAMES[1]))
     CLIENTID = ENV_VAR['client_id']
     walker = ENV_VAR['walker']
 
@@ -162,7 +163,7 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
 
     def helper(x):
         results = np.array([0.0]) 
-        for scene in (SCENE_NAMES if all_scenes else [SCENE_NAMES[0]]):
+        for scene in (SCENE_NAMES[1:] if all_scenes else [SCENE_NAMES[0]]):
             print("{}{}".format(SCENE_PATH, scene))
             load_scene("{}{}".format(SCENE_PATH, scene))
             results += objective(x)
