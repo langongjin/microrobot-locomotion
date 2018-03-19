@@ -10,6 +10,13 @@ from cpg_gaits import *
 VALID_ERROR_CODES = (0 , 1)
 ENV_VAR = {}
 
+SCENE_PATH = 'scenes/'
+SCENE_NAMES = ['normal.ttt',
+               'normal.ttt',
+               'normal.ttt',
+               'normal.ttt',
+               'normal.ttt']
+
 '''
 Helpers
 '''
@@ -51,7 +58,7 @@ def quatToDirection(quat):
 Single/multiple objectives
 '''
 def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
-    penalize_offset=True, client_id=0):
+    penalize_offset=True, client_id=0, all_scenes=False):
     '''
     parameter modes:
         normal (f, phase_offset, left_bias, right_bias)
@@ -62,6 +69,7 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
         moo (distance, energy)
         target (distance to target)
     '''
+    load_scene(SCENE_PATH+SCENE_NAMES[0])
     CLIENTID = ENV_VAR['client_id']
     walker = ENV_VAR['walker']
 
@@ -151,7 +159,16 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             vrep.simxFinish(CLIENTID)
             traceback.print_exc()
             exit()
-    return objective
+
+    def helper(x):
+        results = np.array([0.0]) 
+        for scene in (SCENE_NAMES if all_scenes else [SCENE_NAMES[0]]):
+            print("{}{}".format(SCENE_PATH, scene))
+            load_scene("{}{}".format(SCENE_PATH, scene))
+            results += objective(x)
+        return results
+
+    return helper
 
 '''
 Contextual objectives
@@ -173,8 +190,7 @@ def incline_obj_f(x):
         gait = DualTripod
         gait.f = x[0]
         gait.phase_offset = x[1]
-        gait.coupling_phase_biases = gait.coupling_phase_biases = \
-            gait.generate_coupling(gait.phase_groupings)
+        gait.coupling_phase_biases = gait.generate_coupling(gait.phase_groupings)
 
         cpg = CpgController(gait)
         for _ in range(1000):
