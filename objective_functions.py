@@ -303,3 +303,55 @@ def turning_obj_f(x):
         vrep.simxFinish(CLIENTID)
         traceback.print_exc()
         exit()
+
+def terrain_obj_f(x):
+    print('\nParameters: ' + str(x))
+    try:
+        CLIENTID = ENV_VAR['client_id']
+        load_scene('scenes/terrains/' + str(int(x[3])) + '_z.ttt')
+        walker = ENV_VAR['walker']
+
+        vrep.simxSynchronous(CLIENTID, 1)
+        vrep.simxStartSimulation(CLIENTID, vrep.simx_opmode_blocking)
+
+        errorCode, start = vrep.simxGetObjectPosition(CLIENTID, \
+            walker.base_handle, -1, vrep.simx_opmode_blocking)
+        assert errorCode in VALID_ERROR_CODES, 'Error getting object position'
+
+        gait = DualTripod
+        gait.f = x[0]
+        gait.phase_offset = x[1]
+        gait.coupling_phase_biases = gait.coupling_phase_biases = \
+            gait.generate_coupling(gait.phase_groupings)
+
+        cpg = CpgController(gait)
+        for _ in range(1000):
+            cpg.update(plot=False)
+
+        print('Running trial...')
+        for _ in range(100):
+            output = cpg.output()
+            for i in range(6):
+                walker.legs[i].extendZ(output[i][0] * x[2])
+                walker.legs[i].extendX(output[i][1] * x[2])
+            vrep.simxSynchronousTrigger(CLIENTID)
+            cpg.update()
+
+        errorCode, end = vrep.simxGetObjectPosition(CLIENTID, \
+            walker.base_handle, -1, vrep.simx_opmode_blocking)
+
+        vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_blocking)
+        vrep.simxGetPingTime(CLIENTID)
+        vrep.simxClearIntegerSignal(CLIENTID, '', vrep.simx_opmode_blocking)
+        vrep.simxClearStringSignal(CLIENTID, '', vrep.simx_opmode_blocking)
+        vrep.simxClearFloatSignal(CLIENTID, '', vrep.simx_opmode_blocking)
+        # to be maximized
+        print('Objective: ' + str(start[0] - end[0]))
+        return np.array([start[0] - end[0]])
+    except Exception:
+        print('Encountered an exception, disconnecting from remote API server')
+        vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_oneshot)
+        vrep.simxGetPingTime(CLIENTID)
+        vrep.simxFinish(CLIENTID)
+        traceback.print_exc()
+        exit()
