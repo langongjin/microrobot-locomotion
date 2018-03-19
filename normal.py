@@ -16,7 +16,7 @@ from dotmap import DotMap
 
 init_vrep()
 load_scene('scenes/normal.ttt')
-obj_f = generate_f(parameter_mode='normal', objective_mode='single', steps=400)
+obj_f = generate_f(parameter_mode='normal', objective_mode='single', steps=200)
 task = OptTask(f=obj_f, n_parameters=4, n_objectives=1, \
     bounds=bounds(min=[1, -np.pi, 0, 0], max=[60, np.pi, 1, 1]), \
     vectorized=False)
