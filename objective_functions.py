@@ -162,12 +162,14 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             exit()
 
     def helper(x):
-        results = np.array([0.0]) 
-        for scene in (SCENE_NAMES[1:] if all_scenes else [SCENE_NAMES[0]]):
-            print("{}{}".format(SCENE_PATH, scene))
-            load_scene("{}{}".format(SCENE_PATH, scene))
-            results += objective(x)
-        return results
+        if all_scenes:
+            results = np.array([0.0]) 
+            for scene in SCENE_NAMES[1:]:
+                load_scene("{}{}".format(SCENE_PATH, scene))
+                results += objective(x)
+            return results
+        else:
+            return objective(x)
 
     return helper
 
