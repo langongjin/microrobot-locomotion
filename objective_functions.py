@@ -11,11 +11,19 @@ VALID_ERROR_CODES = (0 , 1)
 ENV_VAR = {}
 
 SCENE_PATH = 'scenes/'
-SCENE_NAMES = ['normal.ttt',
-               'terrains/1.5_z.ttt',
-               'terrains/1_z.ttt',
-               'terrains/2.5_z.ttt',
-               'terrains/2_z.ttt']
+# SCENE_NAMES = ['normal.ttt',
+#                'terrains/1.5_z.ttt',
+#                'terrains/1_z.ttt',
+#                'terrains/2.5_z.ttt',
+#                'terrains/2_z.ttt']
+
+SCENE_NAMES = ['terrains/10_15.ttt',
+               'terrains/10_30.ttt',
+               'terrains/10_45.ttt',
+               'terrains/10_60.ttt',
+               'terrains/10_75.ttt',
+               'terrains/10_90.ttt',
+               'terrains/10_105.ttt']
 
 '''
 Helpers
@@ -69,7 +77,7 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
         moo (distance, energy)
         target (distance to target)
     '''
-    load_scene('scenes/normal.ttt')
+    load_scene('scenes/terrains/10_60.ttt')
     # load_scene('{}{}'.format(SCENE_PATH,SCENE_NAMES[1]))
     CLIENTID = ENV_VAR['client_id']
     walker = ENV_VAR['walker']
@@ -163,11 +171,11 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
 
     def helper(x):
         if all_scenes:
-            results = np.array([0.0]) 
-            for scene in SCENE_NAMES[1:]:
+            results = np.array([0.0])
+            for scene in SCENE_NAMES:
                 load_scene("{}{}".format(SCENE_PATH, scene))
                 results += objective(x)
-            return results
+            return results / len(SCENE_NAMES)
         else:
             return objective(x)
 
