@@ -172,7 +172,7 @@ class CpgController:
         self.network.modulate(new_R, new_X)
 
 def main():
-    cpg = CpgController(gait=Dummy)
+    cpg = CpgController(gait=DualTripod)
     for _ in range(1021):
         cpg.update(plot=False)
     for _ in range(84):

@@ -1,4 +1,4 @@
-e Learning Flexible and Reusable Locomotion Primitives for a Microrobot
+# Learning Flexible and Reusable Locomotion Primitives for a Microrobot
 This is the repository for the paper "Learning Flexible and Reusable Locomotion Primitives for a Microrobot". More information can be found on our website [here](https://sites.google.com/view/learning-locomotion-primitives/).
 Included are demos for running the experiments laid out in the paper.
 
@@ -44,8 +44,6 @@ To run the turning optimization, run:
 python turning.py
 ```
 ## Citation
-
-If you find this code useful, please support us by citing our paper:
 
 Yang, B.; Wang, G.; Calandra, R.; Contreras, D.; Levine, S. & Pister, K. Learning Flexible and Reusable Locomotion Primitives for a Microrobot IEEE Robotics and Automation Letters (RA-L), 2018
 ```

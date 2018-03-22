@@ -17,13 +17,11 @@ SCENE_PATH = 'scenes/'
 #                'terrains/2.5_z.ttt',
 #                'terrains/2_z.ttt']
 
-SCENE_NAMES = ['terrains/10_15.ttt',
-               'terrains/10_30.ttt',
-               'terrains/10_45.ttt',
+SCENE_NAMES = ['terrains/10_30.ttt',
+               # 'terrains/10_45.ttt',
                'terrains/10_60.ttt',
-               'terrains/10_75.ttt',
-               'terrains/10_90.ttt',
-               'terrains/10_105.ttt']
+               # 'terrains/10_75.ttt',
+               'terrains/10_90.ttt']
 
 '''
 Helpers
@@ -96,13 +94,15 @@ def generate_f(parameter_mode, objective_mode, gait=DualTripod, steps=400, \
             if parameter_mode is 'normal':
                 cpg_gait.f = x[0]
                 cpg_gait.phase_offset = x[1]
-                walker.set_left_bias(x[2])
-                walker.set_right_bias(x[3])
+                # walker.set_left_bias(x[2])
+                # walker.set_right_bias(x[3])
+                cpg_gait.R_l = [x[2]*.04 for _ in range(6)]
+                cpg_gait.R_x = [x[3]*.04 for _ in range(6)]
             elif parameter_mode is 'contextual':
                 cpg_gait.f = x[0]
                 cpg_gait.phase_offset = x[1]
                 walker.set_left_bias(x[2])
-                walker.set_right_bias(x[2])
+                walker.set_right_bias(x[3])
             elif parameter_mode is 'discovery':
                 cpg_gait.f = x[0]
                 cpg_gait.phase_offset = x[1]
