@@ -197,7 +197,6 @@ def incline_obj_f(x):
         vrep.simxClearIntegerSignal(CLIENTID, '', vrep.simx_opmode_blocking)
         vrep.simxClearStringSignal(CLIENTID, '', vrep.simx_opmode_blocking)
         vrep.simxClearFloatSignal(CLIENTID, '', vrep.simx_opmode_blocking)
-        # to be maximized
         print('Objective: ' + str(start[0] - end[0]))
         return np.array([start[0] - end[0]])
     except Exception:
