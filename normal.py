@@ -20,9 +20,9 @@ obj_f = generate_f(parameter_mode='normal',
         steps=400,
         all_scenes=True)
 task = OptTask(f=obj_f, n_parameters=4, n_objectives=1, \
-    bounds=bounds(min=[1, -np.pi, 0, 0], max=[30, np.pi, 1, 1]), \
+    bounds=bounds(min=[1, -np.pi, 0, 0], max=[45, np.pi, 1, 1]), \
     vectorized=False)
-stopCriteria = StopCriteria(maxEvals=100)
+stopCriteria = StopCriteria(maxEvals=50)
 
 p = DotMap()
 p.verbosity = 1
