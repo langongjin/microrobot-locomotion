@@ -319,7 +319,7 @@ def terrain_obj_f(x):
     print('\nParameters: ' + str(x))
     try:
         CLIENTID = ENV_VAR['client_id']
-        load_scene('scenes/terrains/' + str(int(x[4])) + '_z.ttt')
+        load_scene('scenes/terrains/10_' + str(int(x[4])) + '.ttt')
         walker = ENV_VAR['walker']
 
         vrep.simxSynchronous(CLIENTID, 1)

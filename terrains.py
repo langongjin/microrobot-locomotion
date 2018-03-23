@@ -125,8 +125,12 @@ class TerrainOptimizer:
         res = minimize(LBFGS_obj, x, method='L-BFGS-B', bounds=bounds)
         return res.x
 
-init_vrep()
-co = TerrainOptimizer(terrain_obj_f, 3, [1, 0, 0], [60, 2 * np.pi, 1], [1, 1.5, 2])
-co.optimize(50)
-co.plot()
-exit_vrep()
+# bounds(min=[1, -np.pi, 0, 0], max=[45, np.pi, 1, 1])
+
+for trial in range(10):
+    init_vrep()
+    co = TerrainOptimizer(terrain_obj_f, 4, [1, -np.pi, 0, 0], [45, np.pi, 1, 1], [45, 60, 75, 90])
+    co.optimize(50)
+    # co.plot()
+    exit_vrep()
+    np.save(str(trial), co.Y)
