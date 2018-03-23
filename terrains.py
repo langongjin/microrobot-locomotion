@@ -127,7 +127,7 @@ class TerrainOptimizer:
 
 # bounds(min=[1, -np.pi, 0, 0], max=[45, np.pi, 1, 1])
 
-for trial in range(10):
+for trial in range(1):
     init_vrep()
     co = TerrainOptimizer(terrain_obj_f, 4, [1, -np.pi, 0, 0], [45, np.pi, 1, 1], [45, 60, 75, 90])
     co.optimize(50)
