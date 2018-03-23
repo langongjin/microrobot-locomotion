@@ -319,7 +319,7 @@ def terrain_obj_f(x):
     print('\nParameters: ' + str(x))
     try:
         CLIENTID = ENV_VAR['client_id']
-        load_scene('scenes/terrains/' + str(int(x[3])) + '_z.ttt')
+        load_scene('scenes/terrains/' + str(int(x[4])) + '_z.ttt')
         walker = ENV_VAR['walker']
 
         vrep.simxSynchronous(CLIENTID, 1)
@@ -332,6 +332,8 @@ def terrain_obj_f(x):
         gait = DualTripod
         gait.f = x[0]
         gait.phase_offset = x[1]
+        gait.R_l = [x[2]*.04 for _ in range(6)]
+        gait.R_x = [x[3]*.04 for _ in range(6)]
         gait.coupling_phase_biases = gait.coupling_phase_biases = \
             gait.generate_coupling(gait.phase_groupings)
 
@@ -340,11 +342,11 @@ def terrain_obj_f(x):
             cpg.update(plot=False)
 
         print('Running trial...')
-        for _ in range(100):
+        for _ in range(400):
             output = cpg.output()
             for i in range(6):
-                walker.legs[i].extendZ(output[i][0] * x[2])
-                walker.legs[i].extendX(output[i][1] * x[2])
+                walker.legs[i].extendZ(output[i][0])
+                walker.legs[i].extendX(output[i][1])
             vrep.simxSynchronousTrigger(CLIENTID)
             cpg.update()
 
