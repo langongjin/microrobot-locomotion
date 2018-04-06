@@ -29,11 +29,15 @@ class TerrainOptimizer:
         self.upper_bounds = upper_bounds
         self.context_space = context_space
 
+        # if not empty:
         self.parameters = np.concatenate([np.random.uniform(lower_bounds[i],
         upper_bounds[i], (10, 1)) for i in range(n_inputs)], axis=1)
         self.contexts = np.random.choice(context_space, (10, 1))
         self.X = np.concatenate((self.parameters, self.contexts), axis=1)
         self.Y = np.array([self.obj_f(self.X[i]) for i in range(10)])
+        # else:
+        #     self.X, self.Y = np.load('parameters-0.npy'), np.load('objectives-0.npy')
+        #     self.parameters, self.contexts = self.X[:,-1:], self.X[:,:-1]
 
         self.train_GP(self.X, self.Y)
         self.model.optimize()
@@ -128,10 +132,26 @@ class TerrainOptimizer:
 # bounds(min=[1, -np.pi, 0, 0], max=[45, np.pi, 1, 1])
 
 # for trial in range(1):
+
+
+
 init_vrep()
-co = TerrainOptimizer(terrain_obj_f, 3, [1, -np.pi, 0], [45, np.pi, 1], [45, 60, 75, 90])
-co.optimize(100)
-# co.plot()
+no = TerrainOptimizer(terrain_obj_f, 3, [1, -np.pi, 0], [45, np.pi, 1], [45, 60, 75, 90])
+no.optimize(100)
+# no = TerrainOptimizer(terrain_obj_f, 3, [1, -np.pi, 0], [45, np.pi, 1], [70])
+no.context_space = [70]
+no.optimize(50)
+# no.plot()
 exit_vrep()
-np.save('parameters-' + str(trial), co.X)
-np.save('objectives-' + str(trial), co.Y)
+np.save('c0-parameters', no.X)
+np.save('c0-objectives', no.Y)
+
+init_vrep()
+no = TerrainOptimizer(terrain_obj_f, 3, [1, -np.pi, 0], [45, np.pi, 1], [70])
+no.optimize(50)
+# no.plot()
+exit_vrep()
+np.save('c1-parameters', no.X)
+np.save('c1-objectives', no.Y)
+
+# no = TerrainOptimizer(terrain_obj_f, )

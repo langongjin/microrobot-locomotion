@@ -319,7 +319,7 @@ def terrain_obj_f(x):
     print('\nParameters: ' + str(x))
     try:
         CLIENTID = ENV_VAR['client_id']
-        load_scene('scenes/terrains/10_' + str(int(x[4])) + '.ttt')
+        load_scene('scenes/terrains/10_' + str(int(x[3])) + '.ttt')
         walker = ENV_VAR['walker']
 
         vrep.simxSynchronous(CLIENTID, 1)
@@ -333,7 +333,7 @@ def terrain_obj_f(x):
         gait.f = x[0]
         gait.phase_offset = x[1]
         gait.R_l = [x[2]*.04 for _ in range(6)]
-        gait.R_x = [x[3]*.04 for _ in range(6)]
+        gait.R_x = [x[2]*.04 for _ in range(6)]
         gait.coupling_phase_biases = gait.coupling_phase_biases = \
             gait.generate_coupling(gait.phase_groupings)
 
@@ -359,8 +359,8 @@ def terrain_obj_f(x):
         vrep.simxClearStringSignal(CLIENTID, '', vrep.simx_opmode_blocking)
         vrep.simxClearFloatSignal(CLIENTID, '', vrep.simx_opmode_blocking)
         # to be maximized
-        print('Objective: ' + str(start[0] - end[0]))
-        return np.array([start[0] - end[0]])
+        print('Objective: ' + str(-start[0] + end[0]))
+        return np.array([-start[0] + end[0]])
     except Exception:
         print('Encountered an exception, disconnecting from remote API server')
         vrep.simxStopSimulation(CLIENTID, vrep.simx_opmode_oneshot)
